@@ -856,6 +856,11 @@ class SchedulePlanner {
         col.appendChild(wb);
       });
 
+      col.addEventListener('dblclick', () => {
+        this.currentDate = new Date(d);
+        const m = this.snapMinutes(9*60);
+        this.openForm(null, m, m+60, this.dateStr(new Date(d)));
+      });
       col.addEventListener('click', () => {
         this.currentDate = new Date(d);
         this.currentView = 'daily';
@@ -890,9 +895,9 @@ class SchedulePlanner {
   }
 
   // --- Form (with recurrence) ---
-  openForm(block, defaultStart, defaultEnd) {
+  openForm(block, defaultStart, defaultEnd, dateOverride) {
     const isEdit = !!block;
-    const ds = this.dateStr(this.currentDate);
+    const ds = dateOverride || (block && block.date) || this.dateStr(this.currentDate);
 
     const overlay = document.createElement('div');
     overlay.className = 'block-form-overlay';

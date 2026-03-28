@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lịch Kế Hoạch</title>
+<style>
+:root {
+  --bg-primary: #0f1117;
+  --bg-secondary: #1a1d27;
+  --bg-tertiary: #242836;
+  --bg-hover: #2d3244;
+  --text-primary: #e8eaf0;
+  --text-secondary: #9ca3b8;
+  --text-muted: #6b7280;
+  --border: #2d3244;
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --danger: #ef4444;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --hour-height: 60px;
+  --gutter-width: 56px;
+  --cat-congviec: #6366f1;
+  --cat-trading: #f59e0b;
+  --cat-cks: #22c55e;
+  --cat-chipbeauty: #ec4899;
+  --cat-canhan: #8b5cf6;
+  --cat-hoctap: #06b6d4;
+  --cat-khac: #78716c;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;color:var(--text-primary);background:var(--bg-primary)}
+body{height:100vh;display:flex;flex-direction:column;overflow:hidden;user-select:none}
+button{font:inherit;color:inherit;cursor:pointer;border:none;background:none}
+input,select{font:inherit;color:var(--text-primary);background:var(--bg-tertiary);border:1px solid var(--border);border-radius:6px;padding:6px 10px;outline:none}
+input:focus,select:focus{border-color:var(--accent)}
+
+/* HEADER */
+.header{display:flex;align-items:center;gap:12px;padding:10px 16px;background:var(--bg-secondary);border-bottom:1px solid var(--border);flex-shrink:0;min-height:50px}
+.header h1{font-size:16px;font-weight:700;white-space:nowrap}
+.view-tabs{display:flex;gap:2px;background:var(--bg-tertiary);border-radius:8px;padding:2px}
+.view-tabs button{padding:6px 16px;border-radius:6px;font-size:13px;font-weight:500;color:var(--text-secondary);transition:all .15s}
+.view-tabs button.active{background:var(--accent);color:#fff}
+.nav-group{display:flex;align-items:center;gap:6px}
+.nav-btn{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:6px;background:var(--bg-tertiary);transition:background .15s}
+.nav-btn:hover{background:var(--bg-hover)}
+.nav-label{font-size:14px;font-weight:600;min-width:180px;text-align:center}
+.today-btn{padding:4px 12px;border-radius:6px;background:var(--bg-tertiary);font-size:12px;font-weight:500;color:var(--text-secondary);transition:all .15s}
+.today-btn:hover{background:var(--accent);color:#fff}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.stats-toggle,.template-toggle{padding:6px 12px;border-radius:6px;background:var(--bg-tertiary);font-size:12px;color:var(--text-secondary);transition:all .15s}
+.stats-toggle:hover,.stats-toggle.active,.template-toggle:hover,.template-toggle.active{background:var(--accent);color:#fff}
+.shortcuts-hint{font-size:10px;color:var(--text-muted);display:flex;gap:6px;align-items:center;flex-wrap:wrap;position:relative}
+.shortcuts-hint kbd{display:inline-block;padding:1px 5px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:3px;font-family:inherit;font-size:10px;color:var(--text-secondary);line-height:1.4}
+.shortcuts-hint .sc-text{font-size:10px}
+.sc-icon{cursor:pointer;font-size:14px;opacity:.5;transition:opacity .15s}
+.sc-icon:hover{opacity:1}
+.sc-tooltip{display:none;position:absolute;right:0;top:28px;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;padding:10px 14px;z-index:50;white-space:nowrap;box-shadow:var(--shadow);font-size:11px;color:var(--text-secondary);line-height:1.8}
+.sc-tooltip kbd{display:inline-block;padding:0 5px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:3px;font-family:inherit;font-size:10px;color:var(--text-primary);margin-right:4px}
+.shortcuts-hint:hover .sc-tooltip{display:block}
+
+/* LAYOUT */
+.app-body{display:flex;flex:1;overflow:hidden}
+.main-area{flex:1;overflow:auto;position:relative}
+
+/* DAILY VIEW */
+.daily-view{position:relative;min-height:100%}
+.time-grid{position:relative;padding-bottom:30px}
+.time-row{display:flex;height:var(--hour-height);border-bottom:1px solid rgba(45,50,68,.4)}
+.time-row .half{border-bottom:1px solid rgba(45,50,68,.2);height:50%}
+.time-label{width:var(--gutter-width);flex-shrink:0;padding:0 8px;font-size:11px;color:var(--text-muted);text-align:right;transform:translateY(-7px);line-height:1}
+.time-slot-area{flex:1;position:relative}
+.time-slot{position:absolute;left:0;right:0;height:var(--hour-height);cursor:pointer}
+.time-slot:hover{background:rgba(99,102,241,.06)}
+
+/* BLOCKS */
+.block{position:absolute;left:8px;right:8px;border-radius:6px;background:var(--bg-tertiary);border:1px solid var(--border);cursor:grab;transition:box-shadow .15s,opacity .15s;z-index:2;overflow:hidden;min-height:20px;display:flex}
+.block:hover{box-shadow:0 2px 12px rgba(0,0,0,.3)}
+.block.dragging{opacity:.7;box-shadow:0 4px 20px rgba(0,0,0,.5);z-index:100;cursor:grabbing}
+.block.completed{opacity:.45}
+.block.completed .block-name{text-decoration:line-through}
+.block.selected{border-color:var(--accent);box-shadow:0 0 0 2px rgba(99,102,241,.3)}
+.block-cat-stripe{width:4px;flex-shrink:0;border-radius:6px 0 0 6px}
+.block-content{flex:1;padding:4px 8px;overflow:hidden;display:flex;flex-direction:column;gap:1px}
+.block-name{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.block-time{font-size:10px;color:var(--text-muted)}
+.block-actions{position:absolute;top:2px;right:2px;display:flex;gap:2px;opacity:0;transition:opacity .15s}
+.block:hover .block-actions{opacity:1}
+.block-check{width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;background:var(--bg-hover);font-size:10px;transition:background .15s}
+.block-check:hover{background:var(--accent)}
+.block-check.checked{background:var(--success)}
+.block-del{width:18px;height:18px;border-radius:4px;display:flex;align-items:center;justify-content:center;background:var(--bg-hover);font-size:10px;color:var(--text-muted);transition:all .15s}
+.block-del:hover{background:var(--danger);color:#fff}
+.block-resize{position:absolute;bottom:0;left:0;right:0;height:6px;cursor:ns-resize;z-index:3}
+.block-resize::after{content:'';display:block;width:20px;height:3px;background:rgba(255,255,255,.2);border-radius:2px;margin:2px auto 0}
+.block:hover .block-resize::after{background:rgba(255,255,255,.4)}
+.block-recurring-icon{font-size:10px;margin-left:4px;opacity:.7}
+
+/* CURRENT TIME LINE */
+.current-time-line{position:absolute;left:var(--gutter-width);right:0;height:2px;background:var(--danger);z-index:10;pointer-events:none}
+.current-time-line::before{content:'';position:absolute;left:-5px;top:-4px;width:10px;height:10px;background:var(--danger);border-radius:50%}
+.current-time-label{position:absolute;right:8px;font-size:10px;color:var(--danger);font-weight:700;transform:translateY(-16px);background:var(--bg-secondary);padding:1px 6px;border-radius:4px;letter-spacing:.5px}
+
+/* WEEKLY VIEW */
+.weekly-view{display:none;height:100%}
+.weekly-view.active{display:flex;flex-direction:column}
+.week-header{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border);flex-shrink:0}
+.week-day-header{padding:10px 8px;text-align:center;font-size:12px;font-weight:600;color:var(--text-secondary);border-right:1px solid var(--border)}
+.week-day-header:last-child{border-right:none}
+.week-day-header.today{color:var(--accent)}
+.week-day-header .day-num{display:block;font-size:18px;margin-top:2px;color:var(--text-primary)}
+.week-day-header.today .day-num{background:var(--accent);color:#fff;width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+.week-body{display:grid;grid-template-columns:repeat(7,1fr);flex:1;overflow:auto}
+.week-day-col{border-right:1px solid var(--border);padding:6px;cursor:pointer;transition:background .15s;overflow-y:auto}
+.week-day-col:last-child{border-right:none}
+.week-day-col:hover{background:var(--bg-secondary)}
+.week-block{padding:6px 8px;border-radius:5px;margin-bottom:4px;font-size:11px;background:var(--bg-tertiary);border-left:3px solid var(--border);cursor:pointer;transition:opacity .15s}
+.week-block.completed{opacity:.45;text-decoration:line-through}
+.week-block-time{color:var(--text-muted);font-size:10px}
+.week-block-name{font-weight:600;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* STATS PANEL */
+.stats-panel{width:0;overflow:hidden;background:var(--bg-secondary);border-left:1px solid var(--border);transition:width .25s;flex-shrink:0}
+.stats-panel.open{width:260px}
+.stats-inner{width:260px;padding:16px}
+.stats-inner h3{font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text-secondary)}
+.stat-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px}
+.stat-row .val{font-weight:700}
+.stat-bar-group{margin-bottom:14px}
+.stat-bar{display:flex;align-items:center;gap:8px;margin-bottom:5px;font-size:11px}
+.stat-bar-label{width:70px;text-align:right;color:var(--text-secondary);flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stat-bar-track{flex:1;height:8px;background:var(--bg-tertiary);border-radius:4px;overflow:hidden}
+.stat-bar-fill{height:100%;border-radius:4px;transition:width .3s}
+.stat-bar-val{width:32px;font-size:10px;color:var(--text-muted)}
+.completion-ring{width:80px;height:80px;margin:0 auto 10px;position:relative}
+.completion-ring svg{transform:rotate(-90deg)}
+.completion-ring .pct{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700}
+
+/* INLINE FORM */
+.block-form-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;display:flex;align-items:center;justify-content:center;overflow-y:auto;padding:20px 0}
+.block-form{background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:20px;width:340px;max-width:90vw;max-height:90vh;overflow-y:auto}
+.block-form h3{font-size:15px;margin-bottom:14px}
+.form-row{margin-bottom:10px}
+.form-row label{display:block;font-size:11px;color:var(--text-secondary);margin-bottom:4px}
+.form-row input,.form-row select{width:100%;padding:8px 10px}
+.form-row-inline{display:flex;gap:10px}
+.form-row-inline .form-row{flex:1}
+.form-btns{display:flex;gap:8px;margin-top:14px;justify-content:flex-end}
+.form-btns button{padding:8px 18px;border-radius:6px;font-size:13px;font-weight:600}
+.btn-cancel{background:var(--bg-tertiary);color:var(--text-secondary)}
+.btn-cancel:hover{background:var(--bg-hover)}
+.btn-save{background:var(--accent);color:#fff}
+.btn-save:hover{background:var(--accent-hover)}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-danger:hover{background:#dc2626}
+
+/* RECURRENCE CUSTOM DAYS */
+.recur-days{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+.recur-days label{display:flex;align-items:center;gap:3px;font-size:11px;color:var(--text-secondary);cursor:pointer;padding:4px 8px;background:var(--bg-tertiary);border-radius:4px;border:1px solid var(--border);transition:all .15s}
+.recur-days label:has(input:checked){background:var(--accent);color:#fff;border-color:var(--accent)}
+.recur-days input{display:none}
+
+/* TEMPLATE MODAL */
+.tpl-modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center}
+.tpl-modal{background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:20px;width:460px;max-width:95vw;max-height:80vh;display:flex;flex-direction:column}
+.tpl-modal h3{font-size:15px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+.tpl-modal h3 button{font-size:18px;color:var(--text-muted);padding:4px}
+.tpl-modal h3 button:hover{color:var(--text-primary)}
+.tpl-list{flex:1;overflow-y:auto;margin-bottom:12px}
+.tpl-item{padding:12px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:8px;margin-bottom:8px}
+.tpl-item-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+.tpl-item-name{font-weight:600;font-size:13px}
+.tpl-item-meta{font-size:11px;color:var(--text-muted)}
+.tpl-item-cats{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap}
+.tpl-item-cat{font-size:10px;padding:2px 6px;border-radius:3px;color:#fff;opacity:.8}
+.tpl-item-actions{display:flex;gap:6px;margin-top:8px}
+.tpl-item-actions button{padding:5px 12px;border-radius:5px;font-size:11px;font-weight:600}
+.tpl-save-row{display:flex;gap:8px}
+.tpl-save-row input{flex:1}
+.tpl-save-row button{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:600;background:var(--accent);color:#fff;white-space:nowrap}
+.tpl-save-row button:hover{background:var(--accent-hover)}
+
+/* CHOICE DIALOG */
+.choice-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:250;display:flex;align-items:center;justify-content:center}
+.choice-dialog{background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:20px;width:320px;max-width:90vw;text-align:center}
+.choice-dialog p{font-size:13px;margin-bottom:14px;color:var(--text-secondary)}
+.choice-dialog .choice-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.choice-dialog .choice-btns button{padding:8px 16px;border-radius:6px;font-size:12px;font-weight:600}
+
+/* FAB */
+.fab{position:fixed;bottom:24px;right:24px;width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(99,102,241,.4);transition:transform .15s,background .15s;z-index:50}
+.fab:hover{transform:scale(1.08);background:var(--accent-hover)}
+
+/* DRAG GHOST */
+.drag-ghost{position:fixed;pointer-events:none;z-index:300;opacity:.8;border-radius:6px;background:var(--bg-tertiary);border:1px solid var(--accent);padding:6px 10px;font-size:12px;font-weight:600}
+
+/* SNAP INDICATOR */
+.snap-indicator{position:absolute;left:var(--gutter-width);right:0;height:2px;background:var(--accent);z-index:5;pointer-events:none;opacity:0;transition:opacity .1s}
+.snap-indicator.visible{opacity:.6}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bg-hover);border-radius:3px}
+
+/* MOBILE */
+@media(max-width:640px){
+  .header{flex-wrap:wrap;gap:8px;padding:8px 10px}
+  .nav-label{min-width:120px;font-size:12px}
+  .stats-panel.open{width:100%;position:fixed;bottom:0;left:0;right:0;height:45vh;z-index:100;border-left:none;border-top:1px solid var(--border)}
+  .stats-inner{width:100%}
+  .shortcuts-hint>.sc-text{display:none}
+  .shortcuts-hint>kbd{display:none}
+  .block{left:4px;right:4px}
+  .fab{bottom:16px;right:16px;width:46px;height:46px;font-size:22px}
+  .tpl-modal{width:95vw}
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📅 Kế Hoạch</h1>
+  <div class="view-tabs">
+    <button class="active" data-view="daily">Ngày</button>
+    <button data-view="weekly">Tuần</button>
+  </div>
+  <div class="nav-group">
+    <button class="nav-btn" id="prevBtn">◀</button>
+    <button class="today-btn" id="todayBtn">Hôm nay</button>
+    <button class="nav-btn" id="nextBtn">▶</button>
+  </div>
+  <span class="nav-label" id="navLabel"></span>
+  <div class="header-right">
+    <span class="shortcuts-hint">
+      <span class="sc-icon" title="Phím tắt">⌨</span>
+      <div class="sc-tooltip">
+        <kbd>N</kbd> Thêm block<br>
+        <kbd>D</kbd> Xem ngày · <kbd>W</kbd> Xem tuần<br>
+        <kbd>←</kbd><kbd>→</kbd> Chuyển ngày/tuần<br>
+        <kbd>T</kbd> Mẫu ngày<br>
+        <kbd>Space</kbd> Hoàn thành<br>
+        <kbd>Del</kbd> Xóa block
+      </div>
+    </span>
+    <button class="template-toggle" id="templateToggle">📋 Mẫu</button>
+    <button class="stats-toggle" id="statsToggle">Thống kê</button>
+  </div>
+</div>
+
+<div class="app-body">
+  <div class="main-area" id="mainArea">
+    <!-- Daily View -->
+    <div class="daily-view" id="dailyView">
+      <div class="time-grid" id="timeGrid"></div>
+    </div>
+    <!-- Weekly View -->
+    <div class="weekly-view" id="weeklyView">
+      <div class="week-header" id="weekHeader"></div>
+      <div class="week-body" id="weekBody"></div>
+    </div>
+  </div>
+  <div class="stats-panel" id="statsPanel">
+    <div class="stats-inner" id="statsInner"></div>
+  </div>
+</div>
+
+<button class="fab" id="fabBtn" title="Thêm khối mới (N)">+</button>
+
+<script>
+'use strict';
+
+const CATEGORIES = [
+  { id: 'congviec', name: 'Công việc', color: 'var(--cat-congviec)' },
+  { id: 'trading', name: 'Trading', color: 'var(--cat-trading)' },
+  { id: 'cks', name: 'CKS', color: 'var(--cat-cks)' },
+  { id: 'chipbeauty', name: 'Chip Beauty', color: 'var(--cat-chipbeauty)' },
+  { id: 'canhan', name: 'Cá nhân', color: 'var(--cat-canhan)' },
+  { id: 'hoctap', name: 'Học tập', color: 'var(--cat-hoctap)' },
+  { id: 'khac', name: 'Khác', color: 'var(--cat-khac)' }
+];
+
+const START_HOUR = 6, END_HOUR = 23;
+const HOUR_PX = 60;
+const SNAP_MIN = 15;
+const STORAGE_KEY = 'schedule_blocks';
+const RECUR_KEY = 'schedule_recurring';
+const RECUR_OVERRIDES_KEY = 'schedule_recur_overrides';
+const TEMPLATES_KEY = 'schedule_templates';
+const DAYS_VI = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+const DAYS_FULL = ['Chủ nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'];
+
+const DEFAULT_TEMPLATES = [
+  {
+    id: '_default_work', name: 'Ngày làm việc', isDefault: true,
+    blocks: [
+      { task: 'Công việc', category: 'congviec', startTime: '08:00', endTime: '12:00' },
+      { task: 'Công việc', category: 'congviec', startTime: '13:00', endTime: '17:00' },
+      { task: 'Cá nhân', category: 'canhan', startTime: '17:30', endTime: '18:30' }
+    ]
+  },
+  {
+    id: '_default_trading', name: 'Ngày trading', isDefault: true,
+    blocks: [
+      { task: 'Review', category: 'trading', startTime: '07:00', endTime: '08:00' },
+      { task: 'CKS', category: 'cks', startTime: '09:00', endTime: '12:00' },
+      { task: 'Trading', category: 'trading', startTime: '13:00', endTime: '15:00' },
+      { task: 'CKS', category: 'cks', startTime: '15:00', endTime: '17:00' }
+    ]
+  }
+];
+
+class SchedulePlanner {
+  constructor() {
+    this.blocks = this.load();
+    this.recurRules = this.loadRecur();
+    this.recurOverrides = this.loadRecurOverrides();
+    this.templates = this.loadTemplates();
+    this.currentView = 'daily';
+    this.currentDate = new Date();
+    this.currentDate.setHours(0,0,0,0);
+    this.selectedBlockId = null;
+    this.dragState = null;
+    this.resizeState = null;
+    this.statsOpen = false;
+
+    this.els = {
+      dailyView: document.getElementById('dailyView'),
+      weeklyView: document.getElementById('weeklyView'),
+      timeGrid: document.getElementById('timeGrid'),
+      weekHeader: document.getElementById('weekHeader'),
+      weekBody: document.getElementById('weekBody'),
+      navLabel: document.getElementById('navLabel'),
+      mainArea: document.getElementById('mainArea'),
+      statsPanel: document.getElementById('statsPanel'),
+      statsInner: document.getElementById('statsInner')
+    };
+
+    this.buildTimeGrid();
+    this.bindEvents();
+    this.render();
+    this.startTimeLine();
+  }
+
+  // --- Storage ---
+  load() { try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || []; } catch { return []; } }
+  save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(this.blocks)); }
+  loadRecur() { try { return JSON.parse(localStorage.getItem(RECUR_KEY)) || []; } catch { return []; } }
+  saveRecur() { localStorage.setItem(RECUR_KEY, JSON.stringify(this.recurRules)); }
+  loadRecurOverrides() { try { return JSON.parse(localStorage.getItem(RECUR_OVERRIDES_KEY)) || []; } catch { return []; } }
+  saveRecurOverrides() { localStorage.setItem(RECUR_OVERRIDES_KEY, JSON.stringify(this.recurOverrides)); }
+  loadTemplates() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(TEMPLATES_KEY));
+      if (saved && saved.length) return saved;
+    } catch {}
+    return [...DEFAULT_TEMPLATES];
+  }
+  saveTemplates() { localStorage.setItem(TEMPLATES_KEY, JSON.stringify(this.templates)); }
+
+  // --- Helpers ---
+  dateStr(d) {
+    const y = d.getFullYear(), m = String(d.getMonth()+1).padStart(2,'0'), dd = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${dd}`;
+  }
+  today() { const d = new Date(); d.setHours(0,0,0,0); return d; }
+  isToday(d) { return this.dateStr(d) === this.dateStr(this.today()); }
+  minutesToTime(m) {
+    const h = Math.floor(m/60), mm = m%60;
+    return `${String(h).padStart(2,'0')}:${String(mm).padStart(2,'0')}`;
+  }
+  timeToMinutes(t) { const [h,m] = t.split(':').map(Number); return h*60+m; }
+  snapMinutes(m) { return Math.round(m/SNAP_MIN)*SNAP_MIN; }
+  minutesToY(m) { return ((m - START_HOUR*60)/60)*HOUR_PX*2; }
+  yToMinutes(y) { return Math.max(START_HOUR*60, Math.min(END_HOUR*60, this.snapMinutes(START_HOUR*60 + (y/(HOUR_PX*2))*60))); }
+  catColor(id) { return (CATEGORIES.find(c=>c.id===id)||CATEGORIES[6]).color; }
+  catName(id) { return (CATEGORIES.find(c=>c.id===id)||CATEGORIES[6]).name; }
+  genId() { return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+  getWeekStart(d) {
+    const dt = new Date(d);
+    const day = dt.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    dt.setDate(dt.getDate() + diff);
+    dt.setHours(0,0,0,0);
+    return dt;
+  }
+
+  // --- Recurring Logic ---
+  doesRecurApply(rule, dateStr) {
+    const d = new Date(dateStr + 'T00:00:00');
+    const created = new Date(rule.createdAt);
+    created.setHours(0,0,0,0);
+    if (d < created) return false;
+    const jsDay = d.getDay(); // 0=Sun
+    const type = rule.recurrence.type;
+    if (type === 'daily') return true;
+    if (type === 'weekdays') return jsDay >= 1 && jsDay <= 5;
+    if (type === 'weekly') {
+      const createdDay = created.getDay();
+      return jsDay === createdDay;
+    }
+    if (type === 'custom') {
+      return (rule.recurrence.days || []).includes(jsDay);
+    }
+    return false;
+  }
+
+  getBlocksForDate(dateStr) {
+    const regular = this.blocks.filter(b => b.date === dateStr);
+    // Generate recurring instances
+    const recurInstances = [];
+    for (const rule of this.recurRules) {
+      if (!this.doesRecurApply(rule, dateStr)) continue;
+      const overrideKey = `${rule.id}_${dateStr}`;
+      const override = this.recurOverrides.find(o => o.key === overrideKey);
+      if (override && override.deleted) continue;
+      if (override && override.block) {
+        recurInstances.push({ ...override.block, _recurId: rule.id, _isRecurring: true });
+      } else {
+        recurInstances.push({
+          id: overrideKey,
+          date: dateStr,
+          task: rule.task,
+          category: rule.category,
+          startTime: rule.startTime,
+          endTime: rule.endTime,
+          completed: false,
+          _recurId: rule.id,
+          _isRecurring: true
+        });
+      }
+    }
+    return [...regular, ...recurInstances];
+  }
+
+  // --- Build Time Grid ---
+  buildTimeGrid() {
+    const grid = this.els.timeGrid;
+    grid.innerHTML = '';
+    const slotArea = document.createElement('div');
+    slotArea.className = 'time-slot-area';
+    slotArea.id = 'slotArea';
+    slotArea.style.position = 'absolute';
+    slotArea.style.left = 'var(--gutter-width)';
+    slotArea.style.right = '0';
+    slotArea.style.top = '0';
+
+    for (let h = START_HOUR; h < END_HOUR; h++) {
+      const row = document.createElement('div');
+      row.className = 'time-row';
+      const label = document.createElement('div');
+      label.className = 'time-label';
+      label.textContent = `${String(h).padStart(2,'0')}:00`;
+      row.appendChild(label);
+      const area = document.createElement('div');
+      area.style.flex = '1';
+      row.appendChild(area);
+      grid.appendChild(row);
+
+      const row2 = document.createElement('div');
+      row2.className = 'time-row';
+      row2.style.borderBottom = '1px solid rgba(45,50,68,.2)';
+      const label2 = document.createElement('div');
+      label2.className = 'time-label';
+      label2.textContent = `${String(h).padStart(2,'0')}:30`;
+      label2.style.color = 'rgba(107,114,128,.5)';
+      row2.appendChild(label2);
+      const area2 = document.createElement('div');
+      area2.style.flex = '1';
+      row2.appendChild(area2);
+      grid.appendChild(row2);
+    }
+
+    grid.style.position = 'relative';
+    const totalHeight = (END_HOUR - START_HOUR) * HOUR_PX * 2;
+    slotArea.style.height = totalHeight + 'px';
+    grid.appendChild(slotArea);
+    grid.style.minHeight = totalHeight + 'px';
+
+    const snap = document.createElement('div');
+    snap.className = 'snap-indicator';
+    snap.id = 'snapIndicator';
+    grid.appendChild(snap);
+
+    const timeLine = document.createElement('div');
+    timeLine.id = 'currentTimeLine';
+    timeLine.style.display = 'none';
+    grid.appendChild(timeLine);
+  }
+
+  // --- Render ---
+  render() {
+    this.updateNav();
+    if (this.currentView === 'daily') {
+      this.els.dailyView.style.display = '';
+      this.els.weeklyView.classList.remove('active');
+      this.renderDailyBlocks();
+      this.updateTimeLine();
+    } else {
+      this.els.dailyView.style.display = 'none';
+      this.els.weeklyView.classList.add('active');
+      this.renderWeekly();
+    }
+    if (this.statsOpen) this.renderStats();
+  }
+
+  updateNav() {
+    const tabs = document.querySelectorAll('.view-tabs button');
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.view === this.currentView));
+    if (this.currentView === 'daily') {
+      const d = this.currentDate;
+      const dayName = DAYS_FULL[d.getDay()];
+      const dd = d.getDate(), mm = d.getMonth()+1, yy = d.getFullYear();
+      const todayMark = this.isToday(d) ? ' (Hôm nay)' : '';
+      this.els.navLabel.textContent = `${dayName}, ${dd}/${mm}/${yy}${todayMark}`;
+    } else {
+      const ws = this.getWeekStart(this.currentDate);
+      const we = new Date(ws); we.setDate(we.getDate()+6);
+      this.els.navLabel.textContent = `${ws.getDate()}/${ws.getMonth()+1} – ${we.getDate()}/${we.getMonth()+1}/${we.getFullYear()}`;
+    }
+  }
+
+  renderDailyBlocks() {
+    const slotArea = document.getElementById('slotArea');
+    slotArea.innerHTML = '';
+    const ds = this.dateStr(this.currentDate);
+    const dayBlocks = this.getBlocksForDate(ds);
+
+    for (let m = START_HOUR*60; m < END_HOUR*60; m += 30) {
+      const slot = document.createElement('div');
+      slot.className = 'time-slot';
+      slot.style.top = this.minutesToY(m) + 'px';
+      slot.dataset.minutes = m;
+      slot.addEventListener('click', (e) => {
+        if (e.target !== slot) return;
+        this.openForm(null, m, m+60);
+      });
+      slotArea.appendChild(slot);
+    }
+
+    dayBlocks.forEach(b => {
+      const el = this.createBlockElement(b);
+      slotArea.appendChild(el);
+    });
+  }
+
+  createBlockElement(b) {
+    const startM = this.timeToMinutes(b.startTime);
+    const endM = this.timeToMinutes(b.endTime);
+    const top = this.minutesToY(startM);
+    const height = Math.max(20, ((endM - startM)/60)*HOUR_PX*2);
+
+    const el = document.createElement('div');
+    el.className = 'block' + (b.completed ? ' completed' : '') + (b.id === this.selectedBlockId ? ' selected' : '');
+    el.style.top = top + 'px';
+    el.style.height = height + 'px';
+    el.dataset.id = b.id;
+
+    const stripe = document.createElement('div');
+    stripe.className = 'block-cat-stripe';
+    stripe.style.background = this.catColor(b.category);
+    el.appendChild(stripe);
+
+    const content = document.createElement('div');
+    content.className = 'block-content';
+    const name = document.createElement('div');
+    name.className = 'block-name';
+    name.textContent = b.task;
+    if (b._isRecurring) {
+      const icon = document.createElement('span');
+      icon.className = 'block-recurring-icon';
+      icon.textContent = '🔁';
+      name.appendChild(icon);
+    }
+    content.appendChild(name);
+
+    if (height > 28) {
+      const time = document.createElement('div');
+      time.className = 'block-time';
+      time.textContent = `${b.startTime} – ${b.endTime}`;
+      content.appendChild(time);
+    }
+    el.appendChild(content);
+
+    // Actions
+    const actions = document.createElement('div');
+    actions.className = 'block-actions';
+    const check = document.createElement('button');
+    check.className = 'block-check' + (b.completed ? ' checked' : '');
+    check.innerHTML = '✓';
+    check.addEventListener('click', (e) => { e.stopPropagation(); this.handleToggleComplete(b); });
+    actions.appendChild(check);
+    const del = document.createElement('button');
+    del.className = 'block-del';
+    del.innerHTML = '✕';
+    del.addEventListener('click', (e) => { e.stopPropagation(); this.handleDeleteBlock(b); });
+    actions.appendChild(del);
+    el.appendChild(actions);
+
+    const resize = document.createElement('div');
+    resize.className = 'block-resize';
+    el.appendChild(resize);
+
+    el.addEventListener('click', (e) => {
+      if (e.target.closest('.block-actions') || e.target.closest('.block-resize')) return;
+      this.selectedBlockId = b.id;
+      this.render();
+    });
+    el.addEventListener('dblclick', (e) => {
+      e.stopPropagation();
+      if (b._isRecurring) {
+        this.handleEditRecurring(b);
+      } else {
+        this.openForm(b);
+      }
+    });
+
+    this.setupBlockDrag(el, b);
+    this.setupBlockResize(resize, b);
+
+    return el;
+  }
+
+  // --- Recurring block actions ---
+  handleToggleComplete(b) {
+    if (b._isRecurring) {
+      this.setRecurOverride(b, { completed: !b.completed });
+    } else {
+      this.toggleComplete(b.id);
+    }
+  }
+
+  handleDeleteBlock(b) {
+    if (b._isRecurring) {
+      this.showChoiceDialog('Xoá lịch lặp lại', 'Bạn muốn xoá chỉ hôm nay hay tất cả?', [
+        { label: 'Chỉ hôm nay', cls: 'btn-cancel', action: () => {
+          this.setRecurOverride(b, { deleted: true });
+        }},
+        { label: 'Tất cả', cls: 'btn-danger', action: () => {
+          this.recurRules = this.recurRules.filter(r => r.id !== b._recurId);
+          this.recurOverrides = this.recurOverrides.filter(o => !o.key.startsWith(b._recurId + '_'));
+          this.saveRecur(); this.saveRecurOverrides(); this.render();
+        }},
+        { label: 'Huỷ', cls: 'btn-cancel', action: () => {} }
+      ]);
+    } else {
+      this.deleteBlock(b.id);
+    }
+  }
+
+  handleEditRecurring(b) {
+    this.showChoiceDialog('Sửa lịch lặp lại', 'Bạn muốn sửa chỉ hôm nay hay tất cả?', [
+      { label: 'Chỉ hôm nay', cls: 'btn-cancel', action: () => {
+        // Edit as override for today only
+        const overrideBlock = { id: b.id, date: b.date, task: b.task, category: b.category, startTime: b.startTime, endTime: b.endTime, completed: b.completed };
+        this.openFormForOverride(overrideBlock, b._recurId);
+      }},
+      { label: 'Tất cả', cls: 'btn-save', action: () => {
+        const rule = this.recurRules.find(r => r.id === b._recurId);
+        if (rule) this.openFormRecurring(rule);
+      }},
+      { label: 'Huỷ', cls: 'btn-cancel', action: () => {} }
+    ]);
+  }
+
+  setRecurOverride(b, changes) {
+    const key = `${b._recurId}_${b.date}`;
+    let override = this.recurOverrides.find(o => o.key === key);
+    if (changes.deleted) {
+      if (!override) override = { key };
+      override.deleted = true;
+      delete override.block;
+      if (!this.recurOverrides.includes(override)) this.recurOverrides.push(override);
+    } else {
+      const updatedBlock = {
+        id: b.id, date: b.date,
+        task: changes.task !== undefined ? changes.task : b.task,
+        category: changes.category !== undefined ? changes.category : b.category,
+        startTime: changes.startTime !== undefined ? changes.startTime : b.startTime,
+        endTime: changes.endTime !== undefined ? changes.endTime : b.endTime,
+        completed: changes.completed !== undefined ? changes.completed : b.completed
+      };
+      if (!override) {
+        override = { key, block: updatedBlock };
+        this.recurOverrides.push(override);
+      } else {
+        override.block = updatedBlock;
+        delete override.deleted;
+      }
+    }
+    this.saveRecurOverrides();
+    this.render();
+  }
+
+  showChoiceDialog(title, message, buttons) {
+    const overlay = document.createElement('div');
+    overlay.className = 'choice-overlay';
+    const dialog = document.createElement('div');
+    dialog.className = 'choice-dialog';
+    dialog.innerHTML = `<h3 style="font-size:14px;margin-bottom:6px">${title}</h3><p>${message}</p>`;
+    const btns = document.createElement('div');
+    btns.className = 'choice-btns';
+    buttons.forEach(b => {
+      const btn = document.createElement('button');
+      btn.className = b.cls;
+      btn.textContent = b.label;
+      btn.addEventListener('click', () => { overlay.remove(); b.action(); });
+      btns.appendChild(btn);
+    });
+    dialog.appendChild(btns);
+    overlay.appendChild(dialog);
+    overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+  }
+
+  // --- Drag ---
+  setupBlockDrag(el, block) {
+    let startY, startTop, moved;
+    const onPointerDown = (e) => {
+      if (e.target.closest('.block-resize') || e.target.closest('.block-actions')) return;
+      e.preventDefault();
+      moved = false;
+      startY = e.clientY;
+      const startM = this.timeToMinutes(block.startTime);
+      startTop = this.minutesToY(startM);
+      el.classList.add('dragging');
+      this.selectedBlockId = block.id;
+      const snap = document.getElementById('snapIndicator');
+
+      const onMove = (e2) => {
+        moved = true;
+        const dy = e2.clientY - startY;
+        const newTop = startTop + dy;
+        const newStartM = this.yToMinutes(newTop);
+        const duration = this.timeToMinutes(block.endTime) - this.timeToMinutes(block.startTime);
+        const clampedStart = Math.min(END_HOUR*60 - duration, Math.max(START_HOUR*60, newStartM));
+        const snappedY = this.minutesToY(clampedStart);
+        el.style.top = snappedY + 'px';
+        snap.style.top = snappedY + 'px';
+        snap.classList.add('visible');
+      };
+
+      const onUp = (e2) => {
+        document.removeEventListener('pointermove', onMove);
+        document.removeEventListener('pointerup', onUp);
+        el.classList.remove('dragging');
+        snap.classList.remove('visible');
+        if (!moved) return;
+        const dy = e2.clientY - startY;
+        const newTop = startTop + dy;
+        const newStartM = this.yToMinutes(newTop);
+        const duration = this.timeToMinutes(block.endTime) - this.timeToMinutes(block.startTime);
+        const clampedStart = Math.min(END_HOUR*60 - duration, Math.max(START_HOUR*60, newStartM));
+        const newStart = this.minutesToTime(clampedStart);
+        const newEnd = this.minutesToTime(clampedStart + duration);
+
+        if (block._isRecurring) {
+          this.setRecurOverride(block, { startTime: newStart, endTime: newEnd });
+        } else {
+          const b = this.blocks.find(x => x.id === block.id);
+          if (b) { b.startTime = newStart; b.endTime = newEnd; this.save(); this.render(); }
+        }
+      };
+
+      document.addEventListener('pointermove', onMove);
+      document.addEventListener('pointerup', onUp);
+    };
+    el.addEventListener('pointerdown', onPointerDown);
+  }
+
+  // --- Resize ---
+  setupBlockResize(handle, block) {
+    handle.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const startY = e.clientY;
+      const startEndM = this.timeToMinutes(block.endTime);
+      const startM = this.timeToMinutes(block.startTime);
+      const parentEl = handle.closest('.block');
+      const snap = document.getElementById('snapIndicator');
+
+      const onMove = (e2) => {
+        const dy = e2.clientY - startY;
+        const newEndM = this.snapMinutes(startEndM + (dy/(HOUR_PX*2))*60);
+        const clampedEnd = Math.min(END_HOUR*60, Math.max(startM + SNAP_MIN, newEndM));
+        const height = Math.max(20, ((clampedEnd - startM)/60)*HOUR_PX*2);
+        parentEl.style.height = height + 'px';
+        const snapY = this.minutesToY(clampedEnd);
+        snap.style.top = snapY + 'px';
+        snap.classList.add('visible');
+      };
+
+      const onUp = (e2) => {
+        document.removeEventListener('pointermove', onMove);
+        document.removeEventListener('pointerup', onUp);
+        snap.classList.remove('visible');
+        const dy = e2.clientY - startY;
+        const newEndM = this.snapMinutes(startEndM + (dy/(HOUR_PX*2))*60);
+        const clampedEnd = Math.min(END_HOUR*60, Math.max(startM + SNAP_MIN, newEndM));
+        const newEnd = this.minutesToTime(clampedEnd);
+
+        if (block._isRecurring) {
+          this.setRecurOverride(block, { endTime: newEnd });
+        } else {
+          const b = this.blocks.find(x => x.id === block.id);
+          if (b) { b.endTime = newEnd; this.save(); this.render(); }
+        }
+      };
+
+      document.addEventListener('pointermove', onMove);
+      document.addEventListener('pointerup', onUp);
+    });
+  }
+
+  // --- Weekly ---
+  renderWeekly() {
+    const ws = this.getWeekStart(this.currentDate);
+    const today = this.today();
+    this.els.weekHeader.innerHTML = '';
+    this.els.weekBody.innerHTML = '';
+
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(ws);
+      d.setDate(d.getDate() + i);
+      const isT = this.dateStr(d) === this.dateStr(today);
+
+      const hdr = document.createElement('div');
+      hdr.className = 'week-day-header' + (isT ? ' today' : '');
+      const dayIdx = d.getDay();
+      hdr.innerHTML = `${DAYS_VI[dayIdx]}<span class="day-num">${d.getDate()}</span>`;
+      this.els.weekHeader.appendChild(hdr);
+
+      const col = document.createElement('div');
+      col.className = 'week-day-col';
+      if (isT) col.style.background = 'rgba(99,102,241,.04)';
+      const ds = this.dateStr(d);
+      const dayBlocks = this.getBlocksForDate(ds).sort((a,b) => a.startTime.localeCompare(b.startTime));
+
+      dayBlocks.forEach(b => {
+        const wb = document.createElement('div');
+        wb.className = 'week-block' + (b.completed ? ' completed' : '');
+        wb.style.borderLeftColor = this.catColor(b.category);
+        const recurIcon = b._isRecurring ? ' 🔁' : '';
+        wb.innerHTML = `<div class="week-block-time">${b.startTime}–${b.endTime}</div><div class="week-block-name">${b.task}${recurIcon}</div>`;
+        wb.addEventListener('click', (e) => {
+          e.stopPropagation();
+          this.currentDate = new Date(d);
+          this.currentView = 'daily';
+          this.selectedBlockId = b.id;
+          this.render();
+        });
+        col.appendChild(wb);
+      });
+
+      col.addEventListener('click', () => {
+        this.currentDate = new Date(d);
+        this.currentView = 'daily';
+        this.render();
+      });
+
+      this.els.weekBody.appendChild(col);
+    }
+  }
+
+  // --- Time Line ---
+  startTimeLine() {
+    this.updateTimeLine();
+    setInterval(() => this.updateTimeLine(), 30000);
+  }
+
+  updateTimeLine() {
+    const el = document.getElementById('currentTimeLine');
+    if (!el) return;
+    if (this.currentView !== 'daily' || !this.isToday(this.currentDate)) {
+      el.style.display = 'none';
+      return;
+    }
+    const now = new Date();
+    const m = now.getHours()*60 + now.getMinutes();
+    if (m < START_HOUR*60 || m > END_HOUR*60) { el.style.display = 'none'; return; }
+    const y = this.minutesToY(m);
+    el.style.display = '';
+    el.className = 'current-time-line';
+    el.style.top = y + 'px';
+    el.innerHTML = `<span class="current-time-label">${this.minutesToTime(m)}</span>`;
+  }
+
+  // --- Form (with recurrence) ---
+  openForm(block, defaultStart, defaultEnd) {
+    const isEdit = !!block;
+    const ds = this.dateStr(this.currentDate);
+
+    const overlay = document.createElement('div');
+    overlay.className = 'block-form-overlay';
+    const form = document.createElement('div');
+    form.className = 'block-form';
+
+    const recurType = isEdit && block.recurrence ? block.recurrence.type : 'none';
+    const recurDays = isEdit && block.recurrence && block.recurrence.days ? block.recurrence.days : [];
+
+    form.innerHTML = `
+      <h3>${isEdit ? 'Sửa khối' : 'Thêm khối mới'}</h3>
+      <div class="form-row">
+        <label>Tên công việc</label>
+        <input type="text" id="formTask" value="${isEdit ? block.task : ''}" placeholder="Nhập tên..." autofocus>
+      </div>
+      <div class="form-row">
+        <label>Danh mục</label>
+        <select id="formCat">
+          ${CATEGORIES.map(c => `<option value="${c.id}" ${isEdit && block.category === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-row-inline">
+        <div class="form-row">
+          <label>Bắt đầu</label>
+          <input type="time" id="formStart" value="${isEdit ? block.startTime : this.minutesToTime(defaultStart||480)}" step="900">
+        </div>
+        <div class="form-row">
+          <label>Kết thúc</label>
+          <input type="time" id="formEnd" value="${isEdit ? block.endTime : this.minutesToTime(defaultEnd||540)}" step="900">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Lặp lại</label>
+        <select id="formRecur">
+          <option value="none" ${recurType==='none'?'selected':''}>Không lặp</option>
+          <option value="daily" ${recurType==='daily'?'selected':''}>Hàng ngày</option>
+          <option value="weekdays" ${recurType==='weekdays'?'selected':''}>Các ngày trong tuần (T2-T6)</option>
+          <option value="weekly" ${recurType==='weekly'?'selected':''}>Hàng tuần</option>
+          <option value="custom" ${recurType==='custom'?'selected':''}>Tùy chỉnh</option>
+        </select>
+      </div>
+      <div class="form-row" id="customDaysRow" style="display:${recurType==='custom'?'block':'none'}">
+        <label>Chọn ngày</label>
+        <div class="recur-days">
+          ${[1,2,3,4,5,6,0].map(d => `<label><input type="checkbox" value="${d}" ${recurDays.includes(d)?'checked':''}>${DAYS_VI[d]}</label>`).join('')}
+        </div>
+      </div>
+      <div class="form-btns">
+        <button class="btn-cancel" id="formCancel">Huỷ</button>
+        <button class="btn-save" id="formSave">${isEdit ? 'Lưu' : 'Tạo'}</button>
+      </div>
+    `;
+    overlay.appendChild(form);
+    document.body.appendChild(overlay);
+
+    const taskInput = form.querySelector('#formTask');
+    setTimeout(() => taskInput.focus(), 50);
+
+    // Toggle custom days visibility
+    form.querySelector('#formRecur').addEventListener('change', (e) => {
+      form.querySelector('#customDaysRow').style.display = e.target.value === 'custom' ? 'block' : 'none';
+    });
+
+    const close = () => overlay.remove();
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+    form.querySelector('#formCancel').addEventListener('click', close);
+
+    const doSave = () => {
+      const task = taskInput.value.trim();
+      if (!task) { taskInput.style.borderColor = 'var(--danger)'; return; }
+      const cat = form.querySelector('#formCat').value;
+      const start = form.querySelector('#formStart').value;
+      const end = form.querySelector('#formEnd').value;
+      if (start >= end) { form.querySelector('#formEnd').style.borderColor = 'var(--danger)'; return; }
+
+      const recurVal = form.querySelector('#formRecur').value;
+      const customDays = [...form.querySelectorAll('#customDaysRow input:checked')].map(i => Number(i.value));
+
+      if (recurVal !== 'none') {
+        // Create/update recurring rule
+        const recurrence = { type: recurVal };
+        if (recurVal === 'custom') recurrence.days = customDays;
+
+        if (isEdit && block._recurRuleEdit) {
+          // Editing existing rule
+          const rule = this.recurRules.find(r => r.id === block.id);
+          if (rule) {
+            rule.task = task; rule.category = cat; rule.startTime = start; rule.endTime = end;
+            rule.recurrence = recurrence;
+          }
+        } else {
+          // New recurring rule (or converting a regular block to recurring)
+          const rule = {
+            id: this.genId(), task, category: cat, startTime: start, endTime: end,
+            recurrence, createdAt: new Date().toISOString()
+          };
+          this.recurRules.push(rule);
+          // If editing a regular block, remove it
+          if (isEdit) this.blocks = this.blocks.filter(x => x.id !== block.id);
+        }
+        this.saveRecur();
+        this.save();
+      } else {
+        // Regular block (non-recurring)
+        if (isEdit) {
+          if (block._recurRuleEdit) {
+            // Converting recurring to non-recurring: delete rule, create regular block
+            this.recurRules = this.recurRules.filter(r => r.id !== block.id);
+            this.saveRecur();
+            this.blocks.push({
+              id: this.genId(), date: ds, startTime: start, endTime: end,
+              task, category: cat, completed: false, createdAt: new Date().toISOString()
+            });
+          } else {
+            const b = this.blocks.find(x => x.id === block.id);
+            if (b) { b.task = task; b.category = cat; b.startTime = start; b.endTime = end; }
+          }
+        } else {
+          this.blocks.push({
+            id: this.genId(), date: ds, startTime: start, endTime: end,
+            task, category: cat, completed: false, createdAt: new Date().toISOString()
+          });
+        }
+        this.save();
+      }
+      close();
+      this.render();
+    };
+
+    form.querySelector('#formSave').addEventListener('click', doSave);
+    form.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') doSave();
+      if (e.key === 'Escape') close();
+    });
+  }
+
+  // Open form for editing a recurring rule directly (edit all)
+  openFormRecurring(rule) {
+    const fakeBlock = {
+      id: rule.id, task: rule.task, category: rule.category,
+      startTime: rule.startTime, endTime: rule.endTime,
+      recurrence: rule.recurrence, _recurRuleEdit: true
+    };
+    this.openForm(fakeBlock);
+  }
+
+  // Open form for override (edit this instance only)
+  openFormForOverride(block, recurId) {
+    const ds = block.date;
+    const overlay = document.createElement('div');
+    overlay.className = 'block-form-overlay';
+    const form = document.createElement('div');
+    form.className = 'block-form';
+    form.innerHTML = `
+      <h3>Sửa khối (chỉ hôm nay)</h3>
+      <div class="form-row">
+        <label>Tên công việc</label>
+        <input type="text" id="formTask" value="${block.task}" autofocus>
+      </div>
+      <div class="form-row">
+        <label>Danh mục</label>
+        <select id="formCat">
+          ${CATEGORIES.map(c => `<option value="${c.id}" ${block.category === c.id ? 'selected' : ''}>${c.name}</option>`).join('')}
+        </select>
+      </div>
+      <div class="form-row-inline">
+        <div class="form-row">
+          <label>Bắt đầu</label>
+          <input type="time" id="formStart" value="${block.startTime}" step="900">
+        </div>
+        <div class="form-row">
+          <label>Kết thúc</label>
+          <input type="time" id="formEnd" value="${block.endTime}" step="900">
+        </div>
+      </div>
+      <div class="form-btns">
+        <button class="btn-cancel" id="formCancel">Huỷ</button>
+        <button class="btn-save" id="formSave">Lưu</button>
+      </div>
+    `;
+    overlay.appendChild(form);
+    document.body.appendChild(overlay);
+    setTimeout(() => form.querySelector('#formTask').focus(), 50);
+
+    const close = () => overlay.remove();
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+    form.querySelector('#formCancel').addEventListener('click', close);
+
+    const doSave = () => {
+      const task = form.querySelector('#formTask').value.trim();
+      if (!task) return;
+      const cat = form.querySelector('#formCat').value;
+      const start = form.querySelector('#formStart').value;
+      const end = form.querySelector('#formEnd').value;
+      if (start >= end) return;
+      this.setRecurOverride({ ...block, _recurId: recurId }, { task, category: cat, startTime: start, endTime: end });
+      close();
+    };
+
+    form.querySelector('#formSave').addEventListener('click', doSave);
+    form.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') doSave();
+      if (e.key === 'Escape') close();
+    });
+  }
+
+  // --- Block Actions ---
+  toggleComplete(id) {
+    const b = this.blocks.find(x => x.id === id);
+    if (b) { b.completed = !b.completed; this.save(); this.render(); }
+  }
+
+  deleteBlock(id) {
+    this.blocks = this.blocks.filter(x => x.id !== id);
+    if (this.selectedBlockId === id) this.selectedBlockId = null;
+    this.save();
+    this.render();
+  }
+
+  // --- Templates ---
+  openTemplatePanel() {
+    const overlay = document.createElement('div');
+    overlay.className = 'tpl-modal-overlay';
+    const modal = document.createElement('div');
+    modal.className = 'tpl-modal';
+
+    const renderInner = () => {
+      const ds = this.dateStr(this.currentDate);
+      const currentBlocks = this.getBlocksForDate(ds);
+      const totalHrs = (blocks) => {
+        const m = blocks.reduce((s,b) => s + this.timeToMinutes(b.endTime) - this.timeToMinutes(b.startTime), 0);
+        return (m/60).toFixed(1);
+      };
+
+      modal.innerHTML = `
+        <h3>📋 Mẫu ngày <button id="tplClose">✕</button></h3>
+        <div class="tpl-save-row" style="margin-bottom:14px">
+          <input type="text" id="tplSaveName" placeholder="Tên mẫu mới...">
+          <button id="tplSaveBtn">Lưu ngày hiện tại</button>
+        </div>
+        <div class="tpl-list" id="tplList"></div>
+      `;
+
+      const list = modal.querySelector('#tplList');
+      if (this.templates.length === 0) {
+        list.innerHTML = '<p style="color:var(--text-muted);font-size:12px;text-align:center;padding:20px">Chưa có mẫu nào</p>';
+      } else {
+        this.templates.forEach(tpl => {
+          const cats = [...new Set(tpl.blocks.map(b => b.category))];
+          const item = document.createElement('div');
+          item.className = 'tpl-item';
+          item.innerHTML = `
+            <div class="tpl-item-header">
+              <span class="tpl-item-name">${tpl.name}</span>
+              <span class="tpl-item-meta">${tpl.blocks.length} khối · ${totalHrs(tpl.blocks)}h</span>
+            </div>
+            <div class="tpl-item-cats">
+              ${cats.map(c => `<span class="tpl-item-cat" style="background:${this.catColor(c)}">${this.catName(c)}</span>`).join('')}
+            </div>
+            <div class="tpl-item-actions">
+              <button class="btn-save tpl-apply" data-id="${tpl.id}">Áp dụng mẫu</button>
+              <button class="btn-cancel tpl-rename" data-id="${tpl.id}">Đổi tên</button>
+              <button class="btn-cancel tpl-del" data-id="${tpl.id}" style="color:var(--danger)">Xoá</button>
+            </div>
+          `;
+          list.appendChild(item);
+        });
+      }
+
+      // Bind events
+      modal.querySelector('#tplClose').addEventListener('click', () => overlay.remove());
+
+      modal.querySelector('#tplSaveBtn').addEventListener('click', () => {
+        const name = modal.querySelector('#tplSaveName').value.trim();
+        if (!name) { modal.querySelector('#tplSaveName').style.borderColor = 'var(--danger)'; return; }
+        if (currentBlocks.length === 0) { alert('Ngày hiện tại không có khối nào'); return; }
+        const tpl = {
+          id: this.genId(), name,
+          blocks: currentBlocks.map(b => ({ task: b.task, category: b.category, startTime: b.startTime, endTime: b.endTime })),
+          createdAt: new Date().toISOString()
+        };
+        this.templates.push(tpl);
+        this.saveTemplates();
+        renderInner();
+      });
+
+      modal.querySelectorAll('.tpl-apply').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tpl = this.templates.find(t => t.id === btn.dataset.id);
+          if (!tpl) return;
+          this.applyTemplate(tpl, ds, currentBlocks, overlay);
+        });
+      });
+
+      modal.querySelectorAll('.tpl-rename').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tpl = this.templates.find(t => t.id === btn.dataset.id);
+          if (!tpl) return;
+          const newName = prompt('Tên mới:', tpl.name);
+          if (newName && newName.trim()) {
+            tpl.name = newName.trim();
+            this.saveTemplates();
+            renderInner();
+          }
+        });
+      });
+
+      modal.querySelectorAll('.tpl-del').forEach(btn => {
+        btn.addEventListener('click', () => {
+          this.templates = this.templates.filter(t => t.id !== btn.dataset.id);
+          this.saveTemplates();
+          renderInner();
+        });
+      });
+    };
+
+    renderInner();
+    overlay.appendChild(modal);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
+    document.body.appendChild(overlay);
+  }
+
+  applyTemplate(tpl, dateStr, existingBlocks, parentOverlay) {
+    const doApply = (replace) => {
+      if (replace) {
+        // Remove all regular blocks for this date
+        this.blocks = this.blocks.filter(b => b.date !== dateStr);
+        // Delete all recurring overrides for this date (mark as deleted)
+        for (const rule of this.recurRules) {
+          if (this.doesRecurApply(rule, dateStr)) {
+            const key = `${rule.id}_${dateStr}`;
+            let ov = this.recurOverrides.find(o => o.key === key);
+            if (!ov) { ov = { key }; this.recurOverrides.push(ov); }
+            ov.deleted = true;
+            delete ov.block;
+          }
+        }
+        this.saveRecurOverrides();
+      }
+      tpl.blocks.forEach(tb => {
+        this.blocks.push({
+          id: this.genId(), date: dateStr,
+          task: tb.task, category: tb.category,
+          startTime: tb.startTime, endTime: tb.endTime,
+          completed: false, createdAt: new Date().toISOString()
+        });
+      });
+      this.save();
+      if (parentOverlay) parentOverlay.remove();
+      this.render();
+    };
+
+    if (existingBlocks.length > 0) {
+      this.showChoiceDialog('Áp dụng mẫu', 'Ngày này đã có lịch. Thay thế hoặc Thêm vào?', [
+        { label: 'Thay thế', cls: 'btn-danger', action: () => doApply(true) },
+        { label: 'Thêm vào', cls: 'btn-save', action: () => doApply(false) },
+        { label: 'Huỷ', cls: 'btn-cancel', action: () => {} }
+      ]);
+    } else {
+      doApply(false);
+    }
+  }
+
+  // --- Stats ---
+  renderStats() {
+    const si = this.els.statsInner;
+    const todayStr = this.dateStr(this.currentDate);
+    const todayBlocks = this.getBlocksForDate(todayStr);
+
+    const totalMin = todayBlocks.reduce((s,b) => s + this.timeToMinutes(b.endTime) - this.timeToMinutes(b.startTime), 0);
+    const doneMin = todayBlocks.filter(b=>b.completed).reduce((s,b) => s + this.timeToMinutes(b.endTime) - this.timeToMinutes(b.startTime), 0);
+    const remaining = totalMin - doneMin;
+    const pct = totalMin > 0 ? Math.round(doneMin/totalMin*100) : 0;
+
+    const ws = this.getWeekStart(this.currentDate);
+    const weekBlocks = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(ws); d.setDate(d.getDate()+i);
+      weekBlocks.push(...this.getBlocksForDate(this.dateStr(d)));
+    }
+    const catHours = {};
+    let maxCatH = 0;
+    CATEGORIES.forEach(c => { catHours[c.id] = 0; });
+    weekBlocks.forEach(b => {
+      const dur = (this.timeToMinutes(b.endTime) - this.timeToMinutes(b.startTime))/60;
+      catHours[b.category] = (catHours[b.category]||0) + dur;
+      if (catHours[b.category] > maxCatH) maxCatH = catHours[b.category];
+    });
+
+    const r = 36, circ = 2*Math.PI*r;
+    const dashLen = (pct/100)*circ;
+
+    si.innerHTML = `
+      <h3>Hôm nay</h3>
+      <div class="completion-ring">
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="${r}" fill="none" stroke="var(--bg-tertiary)" stroke-width="6"/>
+          <circle cx="40" cy="40" r="${r}" fill="none" stroke="var(--accent)" stroke-width="6"
+            stroke-dasharray="${dashLen} ${circ}" stroke-linecap="round"/>
+        </svg>
+        <div class="pct">${pct}%</div>
+      </div>
+      <div class="stat-row"><span>Tổng kế hoạch</span><span class="val">${(totalMin/60).toFixed(1)}h</span></div>
+      <div class="stat-row"><span>Hoàn thành</span><span class="val" style="color:var(--success)">${(doneMin/60).toFixed(1)}h</span></div>
+      <div class="stat-row"><span>Còn lại</span><span class="val" style="color:var(--warning)">${(remaining/60).toFixed(1)}h</span></div>
+      <h3 style="margin-top:18px">Tuần này theo danh mục</h3>
+      <div class="stat-bar-group">
+        ${CATEGORIES.map(c => {
+          const h = catHours[c.id] || 0;
+          if (h === 0) return '';
+          const w = maxCatH > 0 ? (h/maxCatH)*100 : 0;
+          return `<div class="stat-bar">
+            <span class="stat-bar-label">${c.name}</span>
+            <div class="stat-bar-track"><div class="stat-bar-fill" style="width:${w}%;background:${c.color}"></div></div>
+            <span class="stat-bar-val">${h.toFixed(1)}h</span>
+          </div>`;
+        }).join('')}
+      </div>
+    `;
+  }
+
+  // --- Navigation ---
+  navigate(dir) {
+    if (this.currentView === 'daily') {
+      this.currentDate.setDate(this.currentDate.getDate() + dir);
+    } else {
+      this.currentDate.setDate(this.currentDate.getDate() + dir*7);
+    }
+    this.render();
+  }
+
+  goToday() {
+    this.currentDate = this.today();
+    this.render();
+    if (this.currentView === 'daily') {
+      const now = new Date();
+      const m = now.getHours()*60 + now.getMinutes();
+      const y = this.minutesToY(m) - 200;
+      this.els.mainArea.scrollTop = Math.max(0, y);
+    }
+  }
+
+  setView(v) {
+    this.currentView = v;
+    this.render();
+    if (v === 'daily') {
+      const now = new Date();
+      if (this.isToday(this.currentDate)) {
+        const m = now.getHours()*60 + now.getMinutes();
+        const y = this.minutesToY(m) - 200;
+        this.els.mainArea.scrollTop = Math.max(0, y);
+      }
+    }
+  }
+
+  // --- Events ---
+  bindEvents() {
+    document.querySelectorAll('.view-tabs button').forEach(btn => {
+      btn.addEventListener('click', () => this.setView(btn.dataset.view));
+    });
+
+    document.getElementById('prevBtn').addEventListener('click', () => this.navigate(-1));
+    document.getElementById('nextBtn').addEventListener('click', () => this.navigate(1));
+    document.getElementById('todayBtn').addEventListener('click', () => this.goToday());
+
+    document.getElementById('fabBtn').addEventListener('click', () => {
+      const now = new Date();
+      const m = this.snapMinutes(now.getHours()*60 + now.getMinutes());
+      this.openForm(null, m, m+60);
+    });
+
+    document.getElementById('statsToggle').addEventListener('click', () => {
+      this.statsOpen = !this.statsOpen;
+      this.els.statsPanel.classList.toggle('open', this.statsOpen);
+      document.getElementById('statsToggle').classList.toggle('active', this.statsOpen);
+      if (this.statsOpen) this.renderStats();
+    });
+
+    document.getElementById('templateToggle').addEventListener('click', () => {
+      this.openTemplatePanel();
+    });
+
+    // Keyboard
+    document.addEventListener('keydown', (e) => {
+      if (document.querySelector('.block-form-overlay') || document.querySelector('.tpl-modal-overlay') || document.querySelector('.choice-overlay')) return;
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
+      switch(e.key.toLowerCase()) {
+        case 'n': {
+          e.preventDefault();
+          const now = new Date();
+          const m = this.snapMinutes(now.getHours()*60 + now.getMinutes());
+          this.openForm(null, m, m+60);
+          break;
+        }
+        case 'd':
+          e.preventDefault();
+          this.setView('daily');
+          break;
+        case 'w':
+          e.preventDefault();
+          this.setView('weekly');
+          break;
+        case 't':
+          e.preventDefault();
+          this.openTemplatePanel();
+          break;
+        case 'arrowleft':
+          e.preventDefault();
+          this.navigate(-1);
+          break;
+        case 'arrowright':
+          e.preventDefault();
+          this.navigate(1);
+          break;
+        case 'delete':
+        case 'backspace':
+          if (this.selectedBlockId) {
+            e.preventDefault();
+            const selBlock = this.getBlocksForDate(this.dateStr(this.currentDate)).find(b => b.id === this.selectedBlockId);
+            if (selBlock) this.handleDeleteBlock(selBlock);
+            else this.deleteBlock(this.selectedBlockId);
+          }
+          break;
+        case ' ':
+          if (this.selectedBlockId) {
+            e.preventDefault();
+            const selBlock = this.getBlocksForDate(this.dateStr(this.currentDate)).find(b => b.id === this.selectedBlockId);
+            if (selBlock) this.handleToggleComplete(selBlock);
+            else this.toggleComplete(this.selectedBlockId);
+          }
+          break;
+        case 'escape':
+          this.selectedBlockId = null;
+          this.render();
+          break;
+      }
+    });
+
+    this.els.mainArea.addEventListener('click', (e) => {
+      if (!e.target.closest('.block') && !e.target.closest('.time-slot')) {
+        this.selectedBlockId = null;
+        this.render();
+      }
+    });
+  }
+}
+
+// Boot
+document.addEventListener('DOMContentLoaded', () => {
+  const app = new SchedulePlanner();
+  app.goToday();
+});
+</script>
+</body>
+</html>
